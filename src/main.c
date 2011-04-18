@@ -11,6 +11,7 @@
 #include "Task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "cpu/cpu.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
@@ -18,9 +19,11 @@ void __error__(char *pcFilename, unsigned long ulLine) {
 }
 
 static void setupHardware(void) {
-	// TODO: Put hardware configuration and initialisation in here
 	
-	// Warning: If you do not initialize the hardware clock, the timings will be inaccurate
+	disable_global_int();
+	clk_system_init();
+	
+	enable_global_int();
 }
 
 /**
@@ -42,13 +45,13 @@ void vUserTask1(void *pvParameters) {
 /**
  * Simple task that increments a counter
  */
-void vUserTask2(void *pvParameters) {
-	int count = 0;
-	while (1) {
-		count++;
-		vTaskDelay(101) ;
-	}
-}
+// void vUserTask2(void *pvParameters) {
+// 	int count = 0;
+// 	while (1) {
+// 		count++;
+// 		vTaskDelay(101) ;
+// 	}
+// }
 
 /**
  * Program entry point 
@@ -60,7 +63,7 @@ int main(void) {
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
 	xTaskCreate( vUserTask1, ( signed portCHAR * ) "Task1", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vUserTask2, ( signed portCHAR * ) "Task2", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	//xTaskCreate( vUserTask2, ( signed portCHAR * ) "Task2", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* 
 	 * Start the scheduler. 
