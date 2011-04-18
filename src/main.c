@@ -12,6 +12,7 @@
 #include "queue.h"
 #include "semphr.h"
 #include "cpu/cpu.h"
+#include "led/led.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
@@ -22,6 +23,7 @@ static void setupHardware(void) {
 	
 	disable_global_int();
 	clk_system_init();
+	init_leds();
 	
 	enable_global_int();
 }
