@@ -29,18 +29,12 @@ static void setupHardware(void) {
 }
 
 /**
- * Simple task that just toggles between to states
+ * Alive task. Blinks the status LED at 4Hz.
  */
 void vUserTask1(void *pvParameters) {
-	static int iState = 0;
-
 	while (1) {
-		if (iState == 0) {
-			iState = 1;
-		} else {
-			iState = 0;
-		}
-		vTaskDelay(100);
+		led_status_toggle();
+		vTaskDelay(250) ;
 	}
 }
 
