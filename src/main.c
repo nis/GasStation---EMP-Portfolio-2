@@ -13,6 +13,7 @@
 #include "semphr.h"
 #include "cpu/cpu.h"
 #include "led/led.h"
+#include "lcd/lcd.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
@@ -24,6 +25,7 @@ static void setupHardware(void) {
 	disable_global_int();
 	clk_system_init();
 	init_leds();
+	init_lcd_write_task();
 	
 	enable_global_int();
 }
@@ -35,6 +37,15 @@ void vUserTask1(void *pvParameters) {
 	while (1) {
 		led_status_toggle();
 		vTaskDelay(250) ;
+/**
+ * LCD update task
+ */
+void vUserTask2(void *pvParameters)
+{
+	while (1)
+	{
+		lcd_write_task();
+		vTaskDelay(10);
 	}
 }
 
@@ -59,7 +70,7 @@ int main(void) {
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
 	xTaskCreate( vUserTask1, ( signed portCHAR * ) "Task1", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	//xTaskCreate( vUserTask2, ( signed portCHAR * ) "Task2", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( vUserTask2, ( signed portCHAR * ) "Task2", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* 
 	 * Start the scheduler. 
