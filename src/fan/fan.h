@@ -8,6 +8,11 @@
 #ifndef FAN_H_
 #define FAN_H_
 
+INT16U fan_get_pulse_count ( void );
+/*****************************************************************************
+*   Function : Get the pulses counted by the ISR.
+*****************************************************************************/
+
 void fan_task(void);
 /*****************************************************************************
 *   Function : Changes the PWM cycle according to the ref-speed.

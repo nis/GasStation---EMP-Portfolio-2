@@ -34,10 +34,10 @@
 
 /*****************************   Variables   *******************************/
 
-INT8U ref_speed = MIN_SPEED; 	// Speed of the fan. From 0 to 100
-INT16U fan_current = 0;			// Current in the fan in mA
-INT16U fan_rpm = 0;				// Rounds Per Minute for the fan
-INT16U fan_encoder_counter = 0;	// Counter for the interruptroutine
+INT8U 	ref_speed = MIN_SPEED; 		// Speed of the fan. From 0 to 100
+INT16U 	fan_current = 0;			// Current in the fan in mA
+INT16U 	fan_rpm = 0;				// Rounds Per Minute for the fan
+INT16U 	fan_encoder_counter = 0;	// Counter for the interruptroutine
 
 /*****************************   Functions   *******************************/
 
@@ -77,30 +77,32 @@ void fan_task(void)
 		pwm_set_duty_cycle(ref_speed);
 	}
 	old_speed = ref_speed;
-	
+
+			// Not used in this project	
 	// Read the current
-	if (ADC_RIS_R && ADC_RIS_INR2) {
-		INT16U data = (0x3FF & ADC_SSFIFO2_R);
-		
-		ADC_ISC_R |= ADC_ISC_IN2;
-		
-		fan_current = data/4; // Ballpark calculation
-		
-		fan_current = (12*ref_speed/100)*fan_current;
-		
-		ADC_PSSI_R |= ADC_PSSI_SS2; // Enable the ADC for next time
-	}
-	
+	// if (ADC_RIS_R && ADC_RIS_INR2) {
+	// 	INT16U data = (0x3FF & ADC_SSFIFO2_R);
+	// 	
+	// 	ADC_ISC_R |= ADC_ISC_IN2;
+	// 	
+	// 	fan_current = data/4; // Ballpark calculation
+	// 	
+	// 	fan_current = (12*ref_speed/100)*fan_current;
+	// 	
+	// 	ADC_PSSI_R |= ADC_PSSI_SS2; // Enable the ADC for next time
+	// }
+
+			// Not used in this project
 	// Calculate RPM
-	static INT8U rpm_calculation = RPM_CALCULATION_INTERVAL;
-	if(rpm_calculation == 0)
-	{
-		fan_rpm = (fan_encoder_counter/2)*(1000/(RPM_CALCULATION_INTERVAL*10))*60; // RPM Calculation
-		fan_encoder_counter = 0;
-		rpm_calculation = RPM_CALCULATION_INTERVAL;
-	} else {
-		rpm_calculation--;
-	}
+	// static INT8U rpm_calculation = RPM_CALCULATION_INTERVAL;
+	// if(rpm_calculation == 0)
+	// {
+	// 	fan_rpm = (fan_encoder_counter/2)*(1000/(RPM_CALCULATION_INTERVAL*10))*60; // RPM Calculation
+	// 	fan_encoder_counter = 0;
+	// 	rpm_calculation = RPM_CALCULATION_INTERVAL;
+	// } else {
+	// 	rpm_calculation--;
+	// }
 }
 
 void portd_isr(void) 
@@ -117,21 +119,23 @@ void init_fan(void)
 *   Function : See h-file for specification.
 *****************************************************************************/
 {
-	// Init the ADC to check the current through the fan.
-
-	SYSCTL_RCGC0_R |= SYSCTL_RCGC0_ADC; // ADC enabled.
-
-	INT8U dummy = SYSCTL_RCGC0_R; // Dummy! Yay!
-
-	ADC_ACTSS_R &= ~ADC_ACTSS_ASEN2; // Disable sequencer two.
-
-	ADC_SSMUX2_R |= 4;
-
-	ADC_SSCTL2_R |=  ADC_SSCTL2_IE0 | ADC_SSCTL2_END0;
-	
-	ADC_ACTSS_R |= ADC_ACTSS_ASEN2;
-
-	ADC_PSSI_R |= ADC_PSSI_SS2|ADC_PSSI_SS3;
+	INT8U dummy;
+			// Not used in this project
+	// // Init the ADC to check the current through the fan.
+	// 
+	// SYSCTL_RCGC0_R |= SYSCTL_RCGC0_ADC; // ADC enabled.
+	// 
+	// dummy = SYSCTL_RCGC0_R; // Dummy! Yay!
+	// 
+	// ADC_ACTSS_R &= ~ADC_ACTSS_ASEN2; // Disable sequencer two.
+	// 
+	// ADC_SSMUX2_R |= 4;
+	// 
+	// ADC_SSCTL2_R |=  ADC_SSCTL2_IE0 | ADC_SSCTL2_END0;
+	// 
+	// ADC_ACTSS_R |= ADC_ACTSS_ASEN2;
+	// 
+	// ADC_PSSI_R |= ADC_PSSI_SS2|ADC_PSSI_SS3;
 	
 	// Setup PORTD
 	SYSCTL_RCGC2_R |= SYSCTL_RCGC2_GPIOD; // Enable PORTD
@@ -202,6 +206,16 @@ void fan_speed_down( INT8U ds )
 	} else {
 		ref_speed = ref_speed - ds;
 	}
+}
+
+INT16U fan_get_pulse_count ( void )
+/*****************************************************************************
+*   Function : See h-file for specification.
+*****************************************************************************/
+{
+	INT16U return_value = fan_encoder_counter;
+	fan_encoder_counter = 0;
+	return return_value;
 }
 /****************************** End Of Module *******************************/
 
