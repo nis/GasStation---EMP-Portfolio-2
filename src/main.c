@@ -14,6 +14,7 @@
 #include "cpu/cpu.h"
 #include "led/led.h"
 #include "lcd/lcd.h"
+#include "buttons/buttons.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
@@ -26,6 +27,7 @@ static void setupHardware(void) {
 	clk_system_init();
 	init_leds();
 	init_lcd_write_task();
+	init_buttons();
 	
 	enable_global_int();
 }
@@ -50,15 +52,16 @@ void vUserTask2(void *pvParameters)
 }
 
 /**
- * Simple task that increments a counter
+ * Button task
  */
-// void vUserTask2(void *pvParameters) {
-// 	int count = 0;
-// 	while (1) {
-// 		count++;
-// 		vTaskDelay(101) ;
-// 	}
-// }
+void button_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		button_task();
+		vTaskDelay(20);
+	}
+}
 
 /**
  * Program entry point 
@@ -71,6 +74,7 @@ int main(void) {
 	 */
 	xTaskCreate( vUserTask1, ( signed portCHAR * ) "Task1", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( vUserTask2, ( signed portCHAR * ) "Task2", USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( button_task_runner, 		( signed portCHAR * ) "BUTTON_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* 
 	 * Start the scheduler. 
