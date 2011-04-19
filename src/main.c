@@ -96,20 +96,26 @@ void pwm_task_runner(void *pvParameters)
 		vTaskDelay(100);
 	}
 }
+
+/**
  * Working task.
  */
 void vUserTask3(void *pvParameters)
 {
+	INT8U speed;
 	while (1)
 	{
+		fan_set_speed(speed);
+		write_3_char_int_to_buffer (0, 0, speed);
 		
-		write_3_char_int_to_buffer (0, 0, get_up_clicks());
-		write_3_char_int_to_buffer (4, 0, get_down_clicks());
-		write_3_char_int_to_buffer (8, 0, get_left_clicks());
-		write_3_char_int_to_buffer (12, 0, get_right_clicks());
-		write_3_char_int_to_buffer (0, 1, get_select_clicks());
+		if(speed >= 100)
+		{
+			speed = 0;
+		} else {
+			speed++;
+		}
 		
-		vTaskDelay(2000);
+		vTaskDelay(100);
 	}
 }
 
@@ -122,12 +128,12 @@ int main(void) {
 	/* 
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
-	xTaskCreate( alive_task, 	( signed portCHAR * ) "ALIVE_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( lcd_task, 		( signed portCHAR * ) "LCD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( button_task_runner, 		( signed portCHAR * ) "BUTTON_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vUserTask3, 	( signed portCHAR * ) "Task3"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( alive_task, 			( signed portCHAR * ) "ALIVE_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( lcd_task, 				( signed portCHAR * ) "LCD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( button_task_runner, 	( signed portCHAR * ) "BUTTON_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( pwm_task_runner, 		( signed portCHAR * ) "PWM_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( vUserTask3, 			( signed portCHAR * ) "Task3"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* 
 	 * Start the scheduler. 
