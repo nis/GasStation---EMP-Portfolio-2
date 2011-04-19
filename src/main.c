@@ -107,6 +107,7 @@ void vUserTask3(void *pvParameters)
 	{
 		fan_set_speed(speed);
 		write_3_char_int_to_buffer (0, 0, speed);
+		write_3_char_int_to_buffer (0, 1, fan_get_pulse_count());
 		
 		if(speed >= 100)
 		{
