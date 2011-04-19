@@ -15,6 +15,8 @@
 #include "led/led.h"
 #include "lcd/lcd.h"
 #include "buttons/buttons.h"
+#include "pwm/pwm.h"
+#include "fan/fan.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
@@ -28,6 +30,9 @@ static void setupHardware(void) {
 	init_leds();
 	init_lcd_write_task();
 	init_buttons();
+	init_pwm();
+	init_fan();
+	
 	
 	enable_global_int();
 }
@@ -69,6 +74,28 @@ void button_task_runner(void *pvParameters)
 }
 
 /**
+ * Fan task
+ */
+void fan_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		fan_task();
+		vTaskDelay(100);
+	}
+}
+
+/**
+ * PWM task
+ */
+void pwm_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		pwm_task();
+		vTaskDelay(100);
+	}
+}
  * Working task.
  */
 void vUserTask3(void *pvParameters)
@@ -99,6 +126,8 @@ int main(void) {
 	xTaskCreate( lcd_task, 		( signed portCHAR * ) "LCD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( button_task_runner, 		( signed portCHAR * ) "BUTTON_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( vUserTask3, 	( signed portCHAR * ) "Task3"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( pwm_task_runner, 		( signed portCHAR * ) "PWM_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* 
 	 * Start the scheduler. 
