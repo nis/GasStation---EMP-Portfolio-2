@@ -88,8 +88,15 @@ void init_lcd_write_task(void)
 	lcd_init();
 	
 	// Clear the lcd-buffer
-	lcd_add_string_to_buffer(0, 0, "                ");
-	lcd_add_string_to_buffer(0, 1, "                ");
+	INT8U col, row;
+	for (row=0; row < ROW_SIZE; row++)
+	{
+		for (col=0; col < COL_SIZE; col++)
+		{
+			display_buffer[col][row] = ' ';
+			display_buffer_dirty_bits[col][row] = 0;
+		}
+	}
 }
 
 void lcd_set_cursor_position(INT8U row, INT8U col)
