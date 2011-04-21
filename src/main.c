@@ -37,7 +37,7 @@ static void setupHardware(void) {
 	init_buttons();
 	init_pwm();
 	init_fan();
-	
+	init_keyboard();
 	
 	enable_global_int();
 }
@@ -103,6 +103,18 @@ void pwm_task_runner(void *pvParameters)
 }
 
 /**
+ * Keyboard task
+ */
+void keyboard_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		keyboard_task();
+		vTaskDelay(50);
+	}
+}
+
+/**
  * Working task.
  */
 void vUserTask3(void *pvParameters)
@@ -135,12 +147,13 @@ int main(void) {
 	/* 
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
-	xTaskCreate( alive_task, 			( signed portCHAR * ) "ALIVE_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( lcd_task, 				( signed portCHAR * ) "LCD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( button_task_runner, 	( signed portCHAR * ) "BUTTON_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( pwm_task_runner, 		( signed portCHAR * ) "PWM_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vUserTask3, 			( signed portCHAR * ) "Task3"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( alive_task, 			( signed portCHAR * ) "ALIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( lcd_task, 				( signed portCHAR * ) "LCD_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( button_task_runner, 	( signed portCHAR * ) "BUTTON_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( pwm_task_runner, 		( signed portCHAR * ) "PWM_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( keyboard_task_runner, 	( signed portCHAR * ) "KEYBOARD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( vUserTask3, 			( signed portCHAR * ) "Task3"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	
 	
