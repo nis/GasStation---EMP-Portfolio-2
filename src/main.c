@@ -17,8 +17,13 @@
 #include "buttons/buttons.h"
 #include "pwm/pwm.h"
 #include "fan/fan.h"
+#include "qu_mu.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
+
+// all mutex used in this c program
+xSemaphoreHandle lcd_buffer_mutex;
+xSemaphoreHandle lcd_keyboard_port_mutex;
 
 void __error__(char *pcFilename, unsigned long ulLine) {
 }
@@ -125,6 +130,7 @@ void vUserTask3(void *pvParameters)
  */
 int main(void) {
 	setupHardware();
+	
 
 	/* 
 	 * Start the tasks defined within this file/specific to this demo. 
@@ -136,6 +142,25 @@ int main(void) {
 	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( vUserTask3, 			( signed portCHAR * ) "Task3"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
+	
+	
+	/* 
+	 * Setup semaphores.
+	 */
+	lcd_buffer_mutex = xSemaphoreCreateMutex();
+	if ( lcd_buffer_mutex == NULL )
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	lcd_keyboard_port_mutex = xSemaphoreCreateMutex();
+	if ( lcd_keyboard_port_mutex == NULL )
+	{
+		led_red_on();
+		while(1);
+	}
+	
 	/* 
 	 * Start the scheduler. 
 	 */
