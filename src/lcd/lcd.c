@@ -3,6 +3,11 @@
 #include "../cpu/cpu.h"
 #include "../inc/binary.h"
 #include "lcd.h"
+#include "FreeRTOS.h"
+#include "Task.h"
+#include "queue.h"
+#include "semphr.h"
+#include "../qu_mu.h"
 
 #define DELAY_NS(x)		(x-20)*(FCPU/1000000000)/3
 #define DELAY_US(x)		(x*(FCPU/1000000))/3
@@ -162,32 +167,35 @@ void lcd_write_task()
 {	
 	// Find the next dirty bit and write out the char to the LCD.
 	INT8U i = 0;
-	while ( display_buffer_dirty_bits[col_pointer][row_pointer] != 1 && i < COL_SIZE * ROW_SIZE )
-	{
-		if(col_pointer == COL_SIZE - 1)
+	xSemaphoreTake(lcd_buffer_mutex, portMAX_DELAY );
+		while ( display_buffer_dirty_bits[col_pointer][row_pointer] != 1 && i < COL_SIZE * ROW_SIZE )
 		{
-			if(row_pointer == ROW_SIZE - 1)
+			if(col_pointer == COL_SIZE - 1)
 			{
-				row_pointer = 0;
+				if(row_pointer == ROW_SIZE - 1)
+				{
+					row_pointer = 0;
+				} else {
+					row_pointer++;
+				}
+				col_pointer = 0;
 			} else {
-				row_pointer++;
+				col_pointer++;
 			}
-			col_pointer = 0;
-		} else {
-			col_pointer++;
+			
+			i++;
 		}
 		
-		i++;
-	}
-	
-	if(display_buffer_dirty_bits[col_pointer][row_pointer])
-	{
-		lcd_set_cursor_position(row_pointer, col_pointer);
-		set_rs_high();
-		lcd_data_write(display_buffer[col_pointer][row_pointer]);
-		display_buffer_dirty_bits[col_pointer][row_pointer] = 0;
-	}
-	
+		if(display_buffer_dirty_bits[col_pointer][row_pointer])
+		{
+			xSemaphoreTake(lcd_keyboard_port_mutex, portMAX_DELAY );
+				lcd_set_cursor_position(row_pointer, col_pointer);
+				set_rs_high();
+				lcd_data_write(display_buffer[col_pointer][row_pointer]);
+				display_buffer_dirty_bits[col_pointer][row_pointer] = 0;
+			xSemaphoreGive(lcd_keyboard_port_mutex);
+		}
+	xSemaphoreGive(lcd_buffer_mutex);
 	
 	if(col_pointer == COL_SIZE - 1)
 	{
@@ -205,19 +213,24 @@ void lcd_write_task()
 
 void lcd_add_char_to_buffer(INT8U col, INT8U row, INT8U ch)
 {
+	xSemaphoreTake(lcd_buffer_mutex, portMAX_DELAY );
 	display_buffer[col][row] = ch;
 	display_buffer_dirty_bits[col][row] = 1;
+	xSemaphoreGive(lcd_buffer_mutex);
 }
 
 void lcd_add_string_to_buffer(INT8U col, INT8U row, INT8S *str)
 {
 	while ( *str )
 	{
+		xSemaphoreTake(lcd_buffer_mutex, portMAX_DELAY );
 		display_buffer[col][row] = *str;
 		display_buffer_dirty_bits[col][row] = 1;
+		xSemaphoreGive(lcd_buffer_mutex);
 		col++;
 		str++;
 	}
+	
 }
 
 void lcd_io(void)
