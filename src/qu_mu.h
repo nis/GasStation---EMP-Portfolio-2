@@ -29,6 +29,8 @@ extern xSemaphoreHandle lcd_buffer_mutex;
 extern xSemaphoreHandle lcd_keyboard_port_mutex;
 
 // all queues in this c code
+extern xQueueHandle uart_output_queue;
+extern xQueueHandle uart_input_queue;
 
 /*****************************   Constants   *******************************/
 

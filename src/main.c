@@ -18,12 +18,17 @@
 #include "pwm/pwm.h"
 #include "fan/fan.h"
 #include "qu_mu.h"
+#include "uart/uart.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
 // all mutex used in this c program
 xSemaphoreHandle lcd_buffer_mutex;
 xSemaphoreHandle lcd_keyboard_port_mutex;
+
+// All queues
+xQueueHandle uart_output_queue;
+xQueueHandle uart_input_queue;
 
 void __error__(char *pcFilename, unsigned long ulLine) {
 }
@@ -38,6 +43,7 @@ static void setupHardware(void) {
 	init_pwm();
 	init_fan();
 	init_keyboard();
+	init_uart0();
 	
 	enable_global_int();
 }
@@ -115,6 +121,30 @@ void keyboard_task_runner(void *pvParameters)
 }
 
 /**
+ * UART0 send task
+ */
+void uart0_send_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		uart0_send_task();
+		vTaskDelay(10);
+	}
+}
+
+/**
+ * UART0 receive task
+ */
+void uart0_receive_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		uart0_receive_task();
+		vTaskDelay(10);
+	}
+}
+
+/**
  * Working task.
  */
 void vUserTask3(void *pvParameters)
@@ -147,13 +177,15 @@ int main(void) {
 	/* 
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
-	xTaskCreate( alive_task, 			( signed portCHAR * ) "ALIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( lcd_task, 				( signed portCHAR * ) "LCD_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( button_task_runner, 	( signed portCHAR * ) "BUTTON_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( pwm_task_runner, 		( signed portCHAR * ) "PWM_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( fan_task_runner, 		( signed portCHAR * ) "FAN_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( keyboard_task_runner, 	( signed portCHAR * ) "KEYBOARD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vUserTask3, 			( signed portCHAR * ) "Task3"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( alive_task, 				( signed portCHAR * ) "ALIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( lcd_task, 					( signed portCHAR * ) "LCD_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( button_task_runner, 		( signed portCHAR * ) "BUTTON_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( pwm_task_runner, 			( signed portCHAR * ) "PWM_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( fan_task_runner, 			( signed portCHAR * ) "FAN_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( keyboard_task_runner, 		( signed portCHAR * ) "KEYBOARD_TASK"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( uart0_send_task_runner, 	( signed portCHAR * ) "UART0_SEND_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( uart0_receive_task_runner, ( signed portCHAR * ) "UART0_RECEIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( vUserTask3, 				( signed portCHAR * ) "Task3"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	
 	
@@ -173,6 +205,24 @@ int main(void) {
 		led_red_on();
 		while(1);
 	}
+	
+	/* 
+	 * Setup queues.
+	 */
+	uart_output_queue = xQueueCreate(16, sizeof( INT8U ) );
+	if (uart_output_queue == NULL)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	uart_input_queue = xQueueCreate(16, sizeof( INT8U ) );
+	if (uart_input_queue == NULL)
+	{
+		led_red_on();
+		while(1);
+	}
+	
 	
 	/* 
 	 * Start the scheduler. 
