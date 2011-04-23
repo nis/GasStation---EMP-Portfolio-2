@@ -27,14 +27,151 @@
 #include "queue.h"
 #include "semphr.h"
 #include "qu_mu.h"
+#include "defines.h"
+#include "lcd/lcd.h"
+#include "led/led.h"
 
 /*****************************    Defines    *******************************/
+
+#define UART_COMMAND_RECEIVE_TIMEOUT 200 	// How many ticks shoudl we wait before scrubbing the buffer?
+											// 100 = 1 second. 200 = 2 seconds. Etc.
+
+// UART states
+#define UART_IDLE 0
+#define UART_RECEIVE 1
+#define UART_COMMAND_RECEIVED 2
 
 /*****************************   Constants   *******************************/
 
 /*****************************   Variables   *******************************/
 
+INT8U uart_state = 0;
+INT8U input_buffer[32];
+INT8U buffer_pointer = 0;
+INT8U input_timeout = 0;
+
 /*****************************   Functions   *******************************/
+
+INT8U uart_decipher_command( void)
+{
+	INT8U valid_command = 0;
+	
+	if(	(input_buffer[0] == 's') && (input_buffer[1] == 'e') && (input_buffer[2] == 't') && 
+		(input_buffer[4] == '9' || input_buffer[4] == '8') &&
+		(input_buffer[5] == '2' || input_buffer[5] == '5') &&
+		(input_buffer[7] >= '0' && input_buffer[7] <= '9') &&
+		(input_buffer[8] >= '0' && input_buffer[8] <= '9') &&
+		(input_buffer[9] >= '0' && input_buffer[9] <= '9') &&
+		(input_buffer[10] >= '0' && input_buffer[10] <= '9'))
+	{
+		lcd_add_string_to_buffer(0, 0, "Set ");
+		lcd_add_char_to_buffer(4, 0, input_buffer[4]);
+		lcd_add_char_to_buffer(5, 0, input_buffer[5]);
+		
+		// Find new price
+		INT16U new_price = ((input_buffer[7] - 0x30)*1000) + ((input_buffer[8] - 0x30)*100) + ((input_buffer[9] - 0x30)*10) + (input_buffer[10] - 0x30);
+		
+		// Find which product to set the price for
+		INT8U product;
+		if(input_buffer[4] == '9' && input_buffer[5] == '2')
+		{
+			product = OCTANE_92;
+		}
+		
+		if(input_buffer[4] == '9' && input_buffer[5] == '5')
+		{
+			product = OCTANE_95;
+		}
+		
+		if(input_buffer[4] == '8' && input_buffer[5] == '5')
+		{
+			product = OCTANE_85;
+		}
+		
+		// Set price of product to new_price
+		// Send this command to the event queue.
+		
+		return 1;
+	}
+	
+	if((input_buffer[0] == 'g') && (input_buffer[1] == 'e') && (input_buffer[2] == 't'))
+	{
+		// Send a report command to the event queue.
+	}
+	
+	return valid_command;
+}
+
+void uart_clear_buffer( void )
+/*****************************************************************************
+*   Function : Clears the buffer and various other things.
+*****************************************************************************/
+{
+	input_timeout = 0;
+	buffer_pointer = 0;
+	// Clear the buffer
+	INT8U col;
+	for (col=0; col < 32; col++)
+	{
+		input_buffer[col] = ' ';
+	}
+}
+
+void uart0_receive_task()
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	switch (uart_state)
+	{
+		case UART_IDLE:
+			if(!(UART0_FR_R & UART_FR_RXFE))
+			{
+				uart_state = UART_RECEIVE;
+			}
+			break;
+			
+		case UART_RECEIVE:
+			input_timeout++;
+			if(input_timeout > UART_COMMAND_RECEIVE_TIMEOUT)
+			{
+				uart_clear_buffer();
+			} else {
+				if(!(UART0_FR_R & UART_FR_RXFE))
+				{
+					// reset timer
+					input_timeout = 0;
+					
+					INT8U ch = 0;
+					ch = UART0_DR_R;
+					if(ch == 0xD)
+					{
+						uart_state = UART_COMMAND_RECEIVED;
+					} else {
+						input_buffer[buffer_pointer] = ch;
+						buffer_pointer++;
+					}
+				}
+			}
+			break;
+			
+		case UART_COMMAND_RECEIVED:
+			// Are we setting a price?
+			if(uart_decipher_command())
+			{
+				led_green_on();
+				led_red_off();
+				uart_clear_buffer();
+				uart_state = UART_IDLE;
+			} else {
+				led_red_on();
+				led_green_off();
+				uart_clear_buffer();
+				uart_state = UART_IDLE;
+			}
+			break;
+	}
+}
 
 void uart_send_char(INT8U c)
 /*****************************************************************************
@@ -64,17 +201,6 @@ void uart_send_newline( void )
 {
 	uart_send_char('\n');
 	uart_send_char('\r');
-}
-
-void uart0_receive_task()
-/*****************************************************************************
-*   Function : See module specification (.h-file).
-*****************************************************************************/
-{
-	INT8U ch = 0;
-	while(UART0_FR_R & UART_FR_RXFE);
-	ch = UART0_DR_R;
-	xQueueSend(uart_input_queue, &ch, 0);
 }
 
 void uart0_send_task()
