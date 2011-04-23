@@ -39,13 +39,14 @@
 	#define HANDLE_LIFTED			 	7
 	#define HANDLE_REPLACED 			8
 	#define MONEY_USED					9
+	#define PUMP_STOPPED				10
 	
 	// Timeouts
-	#define BUY_TIMEOUT 				10
+	#define BUY_TIMEOUT 				11
 	
 	// Administrative events
-	#define UART_SET_PRICE 				11
-	#define UART_GET_REPORT 			12
+	#define UART_SET_PRICE 				12
+	#define UART_GET_REPORT 			13
 
 // Products
 #define OCTANE_92  0
