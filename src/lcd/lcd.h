@@ -18,6 +18,7 @@ void write_2_char_int_to_buffer (INT8U start, INT8U line, INT8U i );
 void write_3_char_int_to_buffer (INT8U start, INT8U line, INT8U i );
 void write_4_char_int_to_buffer (INT8U start, INT8U line, INT16U i );
 void write_5_char_int_to_buffer (INT8U start, INT8U line, INT16U i );
+void write_10_char_int_to_buffer (INT8U start, INT8U line, INT32U i );
 
 void lcd_add_char_to_buffer(INT8U col, INT8U row, INT8U ch);
 void lcd_add_string_to_buffer(INT8U col, INT8U row, INT8S *str);
