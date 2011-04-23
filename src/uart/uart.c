@@ -39,7 +39,6 @@
 // UART states
 #define UART_IDLE 0
 #define UART_RECEIVE 1
-#define UART_COMMAND_RECEIVED 2
 
 /*****************************   Constants   *******************************/
 
@@ -146,28 +145,13 @@ void uart0_receive_task()
 					ch = UART0_DR_R;
 					if(ch == 0xD)
 					{
-						uart_state = UART_COMMAND_RECEIVED;
+						uart_decipher_command();
+						uart_state = UART_IDLE;
 					} else {
 						input_buffer[buffer_pointer] = ch;
 						buffer_pointer++;
 					}
 				}
-			}
-			break;
-			
-		case UART_COMMAND_RECEIVED:
-			// Are we setting a price?
-			if(uart_decipher_command())
-			{
-				led_green_on();
-				led_red_off();
-				uart_clear_buffer();
-				uart_state = UART_IDLE;
-			} else {
-				led_red_on();
-				led_green_off();
-				uart_clear_buffer();
-				uart_state = UART_IDLE;
 			}
 			break;
 	}
