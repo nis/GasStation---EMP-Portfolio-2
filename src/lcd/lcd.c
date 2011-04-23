@@ -7,7 +7,7 @@
 #include "Task.h"
 #include "queue.h"
 #include "semphr.h"
-#include "../qu_mu.h"
+#include "../defines.h"
 
 #define DELAY_NS(x)		(x-20)*(FCPU/1000000000)/3
 #define DELAY_US(x)		(x*(FCPU/1000000))/3

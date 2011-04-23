@@ -17,7 +17,7 @@
 #include "buttons/buttons.h"
 #include "pwm/pwm.h"
 #include "fan/fan.h"
-#include "qu_mu.h"
+#include "defines.h"
 #include "uart/uart.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE

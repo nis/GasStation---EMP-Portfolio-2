@@ -26,7 +26,7 @@
 #include "Task.h"
 #include "queue.h"
 #include "semphr.h"
-#include "qu_mu.h"
+#include "defines.h"
 #include "defines.h"
 #include "lcd/lcd.h"
 #include "led/led.h"
