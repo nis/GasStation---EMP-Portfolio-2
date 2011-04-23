@@ -34,6 +34,20 @@ INT8U int_to_ascii(INT8U number)
 	}
 }
 
+void write_2_char_int_to_buffer (INT8U start, INT8U line, INT8U i )
+{
+	INT8U c1 = int_to_ascii((i / 10) % 10);
+	INT8U c2 = int_to_ascii((i / 1) % 10);
+	
+	if(c1 == 0x30)
+	{
+		c1 = 0x20;
+	}
+	
+	lcd_add_char_to_buffer(start, line, c1);
+	lcd_add_char_to_buffer(start + 1, line, c2);
+}
+
 void write_3_char_int_to_buffer (INT8U start, INT8U line, INT8U i )
 {
 	INT8U c1 = int_to_ascii((i / 100) % 10);
@@ -52,6 +66,32 @@ void write_3_char_int_to_buffer (INT8U start, INT8U line, INT8U i )
 	lcd_add_char_to_buffer(start, line, c1);
 	lcd_add_char_to_buffer(start + 1, line, c2);
 	lcd_add_char_to_buffer(start + 2, line, c3);
+}
+
+void write_4_char_int_to_buffer (INT8U start, INT8U line, INT16U i )
+{
+	INT8U c1 = int_to_ascii((i / 1000) % 10);
+	INT8U c2 = int_to_ascii((i / 100) % 10);
+	INT8U c3 = int_to_ascii((i / 10) % 10);
+	INT8U c4 = int_to_ascii((i / 1) % 10);
+	
+	if(c1 == 0x30)
+	{
+		c1 = 0x20;
+		if(c2 == 0x30)
+		{
+			c2 = 0x20;
+			if(c3 == 0x30)
+			{
+				c3 = 0x20;
+			}
+		}
+	}
+	
+	lcd_add_char_to_buffer(start, line, c1);
+	lcd_add_char_to_buffer(start + 1, line, c2);
+	lcd_add_char_to_buffer(start + 2, line, c3);
+	lcd_add_char_to_buffer(start + 3, line, c4);
 }
 
 void write_5_char_int_to_buffer (INT8U start, INT8U line, INT16U i )
