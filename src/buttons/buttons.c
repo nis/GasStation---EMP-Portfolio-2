@@ -122,7 +122,7 @@ void button_task()
 			up_state = 1;
 			//up_clicks++;
 			event.event = EVENT_PRODUCT_CLICK;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	} else {
 		if(!button_up_pushed())
@@ -138,7 +138,7 @@ void button_task()
 			down_state = 1;
 			//down_clicks++;
 			event.event = EVENT_ACCOUNT_CLICK;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	} else {
 		if(!button_down_pushed())
@@ -154,7 +154,7 @@ void button_task()
 			left_state = 1;
 			//left_clicks++;
 			event.event = EVENT_ADD_50_KR;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	} else {
 		if(!button_left_pushed())
@@ -170,7 +170,7 @@ void button_task()
 			right_state = 1;
 			//right_clicks++;
 			event.event = EVENT_ADD_100_KR;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	} else {
 		if(!button_right_pushed())
@@ -186,14 +186,14 @@ void button_task()
 			select_state = 1;
 			//select_clicks++;
 			event.event = EVENT_HANDLE_LIFTET;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	} else {
 		if(!button_select_pushed())
 		{
 			select_state = 0;
 			event.event = EVENT_HANDLE_REPLACED;
-			xQueueSend(event_queue, &event, 0);
+			xQueueSend(event_queue, &event, portMAX_DELAY);
 		}
 	}
 }
