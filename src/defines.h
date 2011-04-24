@@ -60,13 +60,14 @@
 	#define STATE_IDLE					0
 	#define STATE_ENTER_ACCOUNT			1
 	#define STATE_ENTER_PIN				2
-	#define STATE_ADD_MONEY				9
-	#define STATE_CHOOSE_PRODUCT		3
-	#define STATE_PUMP_SLOW 			4
-	#define STATE_PUMP_RAMP_UP 			5
-	#define STATE_PUMP_SS 				6
-	#define STATE_PUMP_RAMP_DOWN 		7
-	#define STATE_RECEIPT			 	8
+	#define STATE_ADD_MONEY				3
+	#define STATE_CHOOSE_PRODUCT		4
+	#define STATE_PUMP_SLOW 			5
+	#define STATE_PUMP_RAMP_UP 			6
+	#define STATE_PUMP_SS 				7
+	#define STATE_PUMP_RAMP_DOWN 		8
+	#define STATE_SHUTDOWN_PUMP			9
+	#define STATE_RECEIPT			 	10
 	
 // Lineitem defines
 	#define PAYMENT_CASH				0
@@ -79,7 +80,15 @@
 // Structures
 typedef struct {INT8U command; INT8U product; INT16U price;} uart_command;
 typedef struct {INT8U event; INT16U key; INT16U value;} gasstation_event;
-typedef struct {INT8U pay_method; INT16U money; INT32U account; INT16U pin; INT8U product;} lineitem;
+typedef struct {INT8U pay_method; 
+				INT32U money; 
+				INT16U price; 
+				INT32U account; 
+				INT16U pin; 
+				INT8U product; 
+				INT16U pumped;
+				INT32U time;
+				} lineitem;
 typedef struct {INT8U product; INT16U price;} product_price;
 
 
