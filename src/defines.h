@@ -68,8 +68,6 @@
 	#define STATE_PUMP_RAMP_DOWN 		7
 	#define STATE_RECEIPT			 	8
 	
-	// Command states - when receiving commands from UART.
-	
 // Lineitem defines
 	#define PAYMENT_CASH				0
 	#define PAYMENT_ACCOUNT				1
@@ -82,7 +80,7 @@
 typedef struct {INT8U command; INT8U product; INT16U price;} uart_command;
 typedef struct {INT8U event; INT16U key; INT16U value;} gasstation_event;
 typedef struct {INT8U pay_method; INT16U money; INT32U account; INT16U pin; INT8U product;} lineitem;
-typedef struct {INT8U product; INT16U price;}; product_price;
+typedef struct {INT8U product; INT16U price;} product_price;
 
 
 // all mutex used in this c program
