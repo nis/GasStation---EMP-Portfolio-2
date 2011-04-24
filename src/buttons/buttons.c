@@ -21,6 +21,11 @@
 #include "inc/lm3s6965.h"
 #include "../inc/emp_type.h"
 #include "../inc/binary.h"
+#include "FreeRTOS.h"
+#include "Task.h"
+#include "queue.h"
+#include "semphr.h"
+#include "../defines.h"
 
 /*****************************    Defines    *******************************/
 
@@ -99,6 +104,8 @@ void button_task()
 *   Function : See module specification (.h-file).
 *****************************************************************************/
 {
+	gasstation_event event;
+	
 	// 0 = not pushed, 1 = button pressed down
 	static INT8U up_state 		= 0;
 	static INT8U down_state 	= 0;
@@ -113,7 +120,9 @@ void button_task()
 		if(button_up_pushed())
 		{
 			up_state = 1;
-			up_clicks++;
+			//up_clicks++;
+			event.event = EVENT_PRODUCT_CLICK;
+			xQueueSend(event_queue, &event, 0);
 		}
 	} else {
 		if(!button_up_pushed())
@@ -127,7 +136,9 @@ void button_task()
 		if(button_down_pushed())
 		{
 			down_state = 1;
-			down_clicks++;
+			//down_clicks++;
+			event.event = EVENT_ACCOUNT_CLICK;
+			xQueueSend(event_queue, &event, 0);
 		}
 	} else {
 		if(!button_down_pushed())
@@ -141,7 +152,9 @@ void button_task()
 		if(button_left_pushed())
 		{
 			left_state = 1;
-			left_clicks++;
+			//left_clicks++;
+			event.event = EVENT_ADD_50_KR;
+			xQueueSend(event_queue, &event, 0);
 		}
 	} else {
 		if(!button_left_pushed())
@@ -155,7 +168,9 @@ void button_task()
 		if(button_right_pushed())
 		{
 			right_state = 1;
-			right_clicks++;
+			//right_clicks++;
+			event.event = EVENT_ADD_100_KR;
+			xQueueSend(event_queue, &event, 0);
 		}
 	} else {
 		if(!button_right_pushed())
@@ -169,12 +184,16 @@ void button_task()
 		if(button_select_pushed())
 		{
 			select_state = 1;
-			select_clicks++;
+			//select_clicks++;
+			event.event = EVENT_HANDLE_LIFTET;
+			xQueueSend(event_queue, &event, 0);
 		}
 	} else {
 		if(!button_select_pushed())
 		{
 			select_state = 0;
+			event.event = EVENT_HANDLE_REPLACED;
+			xQueueSend(event_queue, &event, 0);
 		}
 	}
 }
