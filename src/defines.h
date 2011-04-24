@@ -32,30 +32,6 @@
 	#define PUMP_RAMP_DOWN 				4
 	#define PUMP_TARGET_REACHED 		5
 
-// Events
-	// Money events
-	#define ADD_50 						0
-	#define ADD_100 					1
-	#define FROM_ACCOUNT 				2
-	#define ACCOUNT_NUMBER_ENTERED		4
-	#define ACCOUNT_PIN_ENTERED			5
-	
-	// Choosing product
-	#define PRODUCT_BUTTON_CLICKED	 	6
-	
-	// Filling
-	#define HANDLE_LIFTED			 	7
-	#define HANDLE_REPLACED 			8
-	#define MONEY_USED					9
-	#define PUMP_STOPPED				10
-	
-	// Timeouts
-	#define BUY_TIMEOUT 				11
-	
-	// Administrative events
-	#define UART_SET_PRICE 				12
-	#define UART_GET_REPORT 			13
-
 // Products
 	#define OCTANE_92  					0
 	#define OCTANE_95  					1
@@ -69,8 +45,8 @@
 	#define EVENT_ACCOUNT_CLICK			0
 	#define EVENT_ADD_50_KR				1
 	#define EVENT_ADD_100_KR			2
-	#define EVENT_ACCOUNT_RECEIVED		3
-	#define EVENT_PIN_RECEIVED			4
+	#define EVENT_KEYBOARD_DIGIT		3
+	//#define EVENT_PIN_DIGIT				4
 	#define EVENT_PRODUCT_CLICK			5
 	#define EVENT_HANDLE_LIFTET			6
 	#define EVENT_CLOSE_TO_TARGET		7
@@ -80,23 +56,34 @@
 	#define EVENT_HANDLE_REPLACED		11
 	#define EVENT_RECEIPT_TIMEOUT		12 // How long should the receipt be shown?
 	
+// Main states
+	#define STATE_IDLE					0
+	#define STATE_ENTER_ACCOUNT			1
+	#define STATE_ENTER_PIN				2
+	#define STATE_ADD_MONEY				9
+	#define STATE_CHOOSE_PRODUCT		3
+	#define STATE_PUMP_SLOW 			4
+	#define STATE_PUMP_RAMP_UP 			5
+	#define STATE_PUMP_SS 				6
+	#define STATE_PUMP_RAMP_DOWN 		7
+	#define STATE_RECEIPT			 	8
+	
+	// Command states - when receiving commands from UART.
+	
+// Lineitem defines
+	#define PAYMENT_CASH				0
+	#define PAYMENT_ACCOUNT				1
 
 /*****************************   Constants   *******************************/
 
 /*****************************   Variables   *******************************/
 
 // Structures
-struct uart_command
-		{
-			INT8U command;	// From the list of defines above
-			INT8U product;	// Only used when setting price
-			INT16U price;	// Only used when setting price
-		};
-		
-struct gasstation_event		// This might not need to be a struct
-		{
-			INT8U event;
-		};
+typedef struct {INT8U command; INT8U product; INT16U price;} uart_command;
+typedef struct {INT8U event; INT16U key; INT16U value;} gasstation_event;
+typedef struct {INT8U pay_method; INT16U money; INT32U account; INT16U pin; INT8U product;} lineitem;
+typedef struct {INT8U product; INT16U price;}; product_price;
+
 
 // all mutex used in this c program
 extern xSemaphoreHandle lcd_buffer_mutex;
@@ -104,7 +91,18 @@ extern xSemaphoreHandle lcd_keyboard_port_mutex;
 
 // all queues in this c code
 extern xQueueHandle uart_output_queue;
-extern xQueueHandle uart_input_queue;
+extern xQueueHandle uart_command_queue;
+extern xQueueHandle event_queue;
+
+extern xTaskHandle ALIVE_TASK;
+extern xTaskHandle LCD_TASK;
+extern xTaskHandle BUTTON_TASK;
+extern xTaskHandle PWM_TASK;
+extern xTaskHandle FAN_TASK;
+extern xTaskHandle KEYBOARD_TASK;
+extern xTaskHandle UART0_SEND_TASK;
+extern xTaskHandle UART0_RECEIVE_TASK;
+extern xTaskHandle GASSTATION_CONTROLLER;
 
 /*****************************   Functions   *******************************/
 
