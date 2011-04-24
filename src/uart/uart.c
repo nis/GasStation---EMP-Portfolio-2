@@ -51,6 +51,38 @@ INT8U input_timeout = 0;
 
 /*****************************   Functions   *******************************/
 
+INT8U int_to_ascii_uart(INT8U number)
+/*****************************************************************************
+*   Function : Accepts an int < 10 and returns the ascii value for that number
+*****************************************************************************/
+{
+	if(number < 10)
+	{
+		return 0x30 + number;
+	} else {
+		return 0x30;
+	}
+}
+
+void uart_send_4_digit_int (INT16U i )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	INT8U c1 = int_to_ascii_uart((i / 1000) % 10);
+	INT8U c2 = int_to_ascii_uart((i / 100) % 10);
+	INT8U c3 = int_to_ascii_uart((i / 10) % 10);
+	INT8U c4 = int_to_ascii_uart((i / 1) % 10);
+	
+	
+	
+		uart_send_char(c1);
+		uart_send_char(c2);
+		uart_send_char(c3);
+	
+	uart_send_char(c4);
+}
+
 void uart_clear_buffer( void )
 /*****************************************************************************
 *   Function : Clears the buffer and various other things.
@@ -114,6 +146,21 @@ INT8U uart_decipher_command( void)
 	}
 	
 	uart_clear_buffer();
+	
+	if(!valid_command)
+	{
+		uart_send_string("Invalid command!");
+		uart_send_newline();
+		uart_send_string("To set the price of a product to xxxx:");
+		uart_send_newline();
+		uart_send_string("  set [92|95|85] xxxx");
+		uart_send_newline();
+		uart_send_string("To request a report:");
+		uart_send_newline();
+		uart_send_string(" get");
+		uart_send_newline();
+	}
+	
 	return valid_command;
 }
 
@@ -169,7 +216,7 @@ void uart_send_char(INT8U c)
 *   Function : See module specification (.h-file).
 *****************************************************************************/
 {
-	xQueueSend(uart_output_queue,&c, 0);
+	xQueueSend(uart_output_queue,&c, portMAX_DELAY);
 }
 
 void uart_send_string(INT8S *str )
@@ -190,7 +237,7 @@ void uart_send_newline( void )
 *   Function : See module specification (.h-file).
 *****************************************************************************/
 {
-	uart_send_char('\n');
+	//uart_send_char('\n');
 	uart_send_char('\r');
 }
 

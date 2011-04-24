@@ -330,21 +330,80 @@ void gasstation_controller_runner(void *pvParameters)
  */
 int main(void) {
 	setupHardware();
-	
+	portBASE_TYPE create_check = pdTRUE;
 
 	/* 
 	 * Start the tasks defined within this file/specific to this demo. 
 	 */
-	xTaskCreate( alive_task, 					( signed portCHAR * ) "ALIVE_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( lcd_task, 						( signed portCHAR * ) "LCD_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( button_task_runner, 			( signed portCHAR * ) "BUTTON_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( pwm_task_runner, 				( signed portCHAR * ) "PWM_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( fan_task_runner, 				( signed portCHAR * ) "FAN_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( keyboard_task_runner, 			( signed portCHAR * ) "KEYBOARD_TASK"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( uart0_send_task_runner, 		( signed portCHAR * ) "UART0_SEND_TASK"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( uart0_receive_task_runner, 	( signed portCHAR * ) "UART0_RECEIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( gasstation_controller_runner, 	( signed portCHAR * ) "GASSTATION_CONTROLLER"	, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-
+	create_check = xTaskCreate( alive_task, 					( signed portCHAR * ) "ALIVE_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( lcd_task, 						( signed portCHAR * ) "LCD_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( button_task_runner, 			( signed portCHAR * ) "BUTTON_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( pwm_task_runner, 				( signed portCHAR * ) "PWM_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( fan_task_runner, 				( signed portCHAR * ) "FAN_TASK"				, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( keyboard_task_runner, 			( signed portCHAR * ) "KEYBOARD_TASK"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( uart0_send_task_runner, 		( signed portCHAR * ) "UART0_SEND_TASK"			, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( uart0_receive_task_runner, 	( signed portCHAR * ) "UART0_RECEIVE_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( rtc_task_runner, 	( signed portCHAR * ) "RTC_TASK"		, USERTASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
+	
+	create_check = xTaskCreate( gasstation_controller_runner, 	( signed portCHAR * ) "GASSTATION_CONTROLLER"	, 85, NULL, tskIDLE_PRIORITY, NULL );
+	if (create_check != pdTRUE)
+	{
+		led_red_on();
+		while(1);
+	}
 	
 	
 	/* 
@@ -367,7 +426,7 @@ int main(void) {
 	/* 
 	 * Setup queues.
 	 */
-	uart_output_queue = xQueueCreate(16, sizeof( INT8U ) );
+	uart_output_queue = xQueueCreate(128, sizeof( INT8U ) );
 	if (uart_output_queue == NULL)
 	{
 		led_red_on();

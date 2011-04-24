@@ -29,6 +29,9 @@
 #include "gasstation_controller.h"
 #include "../lcd/lcd.h"
 #include "../led/led.h"
+#include "../pwm/pwm.h"
+#include "../fan/fan.h"
+#include "../uart/uart.h"
 #include "rtc/rtc.h"
 
 /*****************************    Defines    *******************************/
@@ -36,13 +39,29 @@
 /*****************************   Constants   *******************************/
 
 /*****************************   Variables   *******************************/
-
+lineitem sales[100];
+INT16U sales_pointer = 0;
 lineitem current_item;
 product_price octane_92;
 product_price octane_95;
-product_price E_85;
+product_price octane_85;
 
 /*****************************   Functions   *******************************/
+
+void update_tanking_display( void )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	write_4_char_int_to_buffer_with_comma (0, 0, current_item.pumped);
+	lcd_add_char_to_buffer(5, 0, 'L');
+	
+	write_4_char_int_to_buffer_with_comma (7, 0, current_item.price);
+	write_10_char_int_to_buffer_with_comma (3, 1, ((current_item.pumped * current_item.price)/100));
+	
+	lcd_add_string_to_buffer(12, 0, "kr/L");
+	lcd_add_string_to_buffer(14, 1, "kr");
+}
 
 void gasstation_controller_init( void )
 /*****************************************************************************
@@ -55,8 +74,8 @@ void gasstation_controller_init( void )
 	octane_95.product = OCTANE_95;
 	octane_95.price = 1003;
 	
-	E_85.product = OCTANE_85;
-	E_85.price = 1200;
+	octane_85.product = OCTANE_85;
+	octane_85.price = 1200;
 }
 
 void deascii_pin( INT16U a[4] )
@@ -80,7 +99,7 @@ void add_money( INT8U m )
 *   Function : Adds money to the current lineitem.
 *****************************************************************************/
 {
-	current_item.money += m;
+	current_item.money += m*100;
 }
 
 void reset_line_item()
@@ -93,6 +112,8 @@ void reset_line_item()
 	current_item.account = 0;
 	current_item.pin = 0;
 	current_item.product = 0;
+	current_item.pumped = 0;
+	current_item.time = 0;
 }
 
 void gasstation_controller_task()
@@ -103,6 +124,7 @@ void gasstation_controller_task()
 	static INT8U gasstation_state = STATE_IDLE;
 	portBASE_TYPE status;
 	gasstation_event event;
+	uart_command command;
 	
 	static INT8U big_timer_running 		= 0;
 	static INT16U big_timer 			= 0;
@@ -110,6 +132,9 @@ void gasstation_controller_task()
 	static INT8U account_pointer 		= 0;
 	static INT16U pin[4]				= { 0x20, 0x20, 0x20, 0x20 };
 	static INT8U pin_pointer			= 0;
+	static INT16U pump_target			= 0;
+	//static INT16U pump_pumped			= 0;
+	static INT16U pump_timer				= 0;
 	
 	switch ( gasstation_state )
 	{
@@ -119,6 +144,55 @@ void gasstation_controller_task()
 		lcd_add_string_to_buffer(0, 0, "Insert money or ");
 		lcd_add_string_to_buffer(0, 1, "choose account. ");
 		
+		// Check for UART commands
+		if(uxQueueMessagesWaiting(uart_command_queue) != 0)
+		{
+			status = xQueueReceive(uart_command_queue, &command, 0);
+			
+			if(status == pdPASS)
+			{
+				switch (command.command)
+				{
+					case UART_SET_PRICE:
+					switch (command.product)
+					{
+						case OCTANE_92:
+						uart_send_string("Changed price for 92 from ");
+						uart_send_4_digit_int( octane_92.price );
+						octane_92.price = command.price;
+						uart_send_string(" to ");
+						uart_send_4_digit_int( octane_92.price );
+						uart_send_newline();
+						break;
+						
+						case OCTANE_95:
+						uart_send_string("Changed price for 95 from ");
+						uart_send_4_digit_int( octane_95.price );
+						octane_95.price = command.price;
+						uart_send_string(" to ");
+						uart_send_4_digit_int( octane_95.price );
+						uart_send_newline();
+						break;
+						
+						case OCTANE_85:
+						uart_send_string("Changed price for E85 from ");
+						uart_send_4_digit_int( octane_85.price );
+						octane_85.price = command.price;
+						uart_send_string(" to ");
+						uart_send_4_digit_int( octane_85.price );
+						uart_send_newline();
+						break;
+					}
+					break;
+					
+					case UART_GET_REPORT:
+					led_yellow_toggle();
+					break;
+				}
+			}
+		}
+		
+		// Check for button events
 		if(uxQueueMessagesWaiting(event_queue) != 0)
 		{
 			status = xQueueReceive(event_queue, &event, 0);
@@ -229,8 +303,8 @@ void gasstation_controller_task()
 		
 		case STATE_ADD_MONEY:
 		lcd_add_string_to_buffer(0, 0, "Money added:    ");
-		lcd_add_string_to_buffer(5, 1, "          ");
-		write_5_char_int_to_buffer (0, 1, current_item.money );
+		lcd_add_string_to_buffer(0, 1, "     ");
+		write_10_char_int_to_buffer_with_comma (5, 1, current_item.money );
 		
 		if(uxQueueMessagesWaiting(event_queue) != 0)
 		{
@@ -263,12 +337,15 @@ void gasstation_controller_task()
 		if(current_item.product == OCTANE_92)
 		{
 			lcd_add_string_to_buffer(0, 1, " 92");
+			current_item.price = octane_92.price;
 		} else if(current_item.product == OCTANE_95)
 		{
 			lcd_add_string_to_buffer(0, 1, " 95");
+			current_item.price = octane_95.price;
 		} else	if(current_item.product == OCTANE_85)
 		{
 			lcd_add_string_to_buffer(0, 1, "E85");
+			current_item.price = octane_85.price;
 		}
 		
 		if(uxQueueMessagesWaiting(event_queue) != 0)
@@ -295,10 +372,178 @@ void gasstation_controller_task()
 						break;
 					}
 					break;
+					
+					case EVENT_HANDLE_LIFTET:
+					if(current_item.pay_method == PAYMENT_CASH)
+					{
+						pump_target = (current_item.money/current_item.price) * 100;
+						current_item.pumped = 0;
+						fan_get_pulse_count();
+					}
+					pump_timer = 0;
+					gasstation_state = STATE_PUMP_SLOW;
+					break;
 				}
 			}
 		}
 		
+		break;
+		
+		case STATE_PUMP_SLOW:
+		fan_set_speed(40);
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		
+		if(current_item.pay_method == PAYMENT_CASH && (pump_target - current_item.pumped) < 1000)
+		{
+			gasstation_state = STATE_PUMP_RAMP_DOWN;
+		}
+		
+		if(pump_timer >= 200)
+		{
+			pump_timer = 0;
+			gasstation_state = STATE_PUMP_RAMP_UP;
+		} else {
+			pump_timer++;
+		}
+		
+		if(uxQueueMessagesWaiting(event_queue) != 0)
+		{
+			status = xQueueReceive(event_queue, &event, 0);
+			
+			if(status == pdPASS)
+			{
+				switch ( event.event )
+				{
+					case EVENT_HANDLE_REPLACED:
+					gasstation_state = STATE_SHUTDOWN_PUMP;
+					break;
+				}
+			}
+		}
+		break;
+		
+		case STATE_PUMP_RAMP_UP:
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		
+		if(current_item.pay_method == PAYMENT_CASH && (pump_target - current_item.pumped) < 1000)
+		{
+			gasstation_state = STATE_PUMP_RAMP_DOWN;
+		}
+		
+		if(pump_timer >= 10)
+		{
+			pump_timer = 0;
+			if(fan_get_ref_speed() < 100)
+			{
+				fan_speed_up( 1 );
+			} else {
+				gasstation_state = STATE_PUMP_SS;
+			}
+		} else {
+			pump_timer++;
+		}
+		
+		if(uxQueueMessagesWaiting(event_queue) != 0)
+		{
+			status = xQueueReceive(event_queue, &event, 0);
+			
+			if(status == pdPASS)
+			{
+				switch ( event.event )
+				{
+					case EVENT_HANDLE_REPLACED:
+					gasstation_state = STATE_SHUTDOWN_PUMP;
+					break;
+				}
+			}
+		}
+		break;
+		
+		case STATE_PUMP_SS:
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		
+		if(current_item.pay_method == PAYMENT_CASH && (pump_target - current_item.pumped) < 1000)
+		{
+			gasstation_state = STATE_PUMP_RAMP_DOWN;
+		}
+		
+		if(uxQueueMessagesWaiting(event_queue) != 0)
+		{
+			status = xQueueReceive(event_queue, &event, 0);
+			
+			if(status == pdPASS)
+			{
+				switch ( event.event )
+				{
+					case EVENT_HANDLE_REPLACED:
+					gasstation_state = STATE_SHUTDOWN_PUMP;
+					break;
+				}
+			}
+		}
+		
+		break;
+		
+		case STATE_PUMP_RAMP_DOWN:
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		
+		INT16U diff = pump_target - current_item.pumped;
+		
+		if(current_item.pumped > pump_target)
+		{
+			fan_set_speed(0);
+			gasstation_state = STATE_SHUTDOWN_PUMP;
+		} else if(diff < 12)
+		{
+			fan_set_speed(0);
+			gasstation_state = STATE_SHUTDOWN_PUMP;
+		} else if(diff < 30)
+		{
+			fan_set_speed(3);
+		} else if(diff < 100)
+		{
+			fan_set_speed(5);
+		} else if(diff < 250)
+		{
+			fan_set_speed(10);
+		} else if(diff < 500)
+		{
+			fan_set_speed(30);
+		} else if(diff < 1000)
+		{
+			fan_set_speed(50);
+		}
+		break;
+		
+		case STATE_SHUTDOWN_PUMP:
+		fan_set_speed(0);
+		INT16U old_pumped = current_item.pumped;
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		if(current_item.pumped == old_pumped)
+		{
+			current_item.time = rtc_get_time();
+			sales[sales_pointer] = current_item;
+			sales_pointer++;
+			
+			pump_timer = 0;
+			gasstation_state = STATE_RECEIPT;
+		}
+		break;
+		
+		case STATE_RECEIPT:
+		if(pump_timer >= 500)
+		{
+			pump_timer = 0;
+			reset_line_item();
+			gasstation_state = STATE_IDLE;
+		} else {
+			pump_timer++;
+		}
 		break;
 	}
 }
