@@ -150,6 +150,12 @@ void uart0_receive_task()
 					} else {
 						input_buffer[buffer_pointer] = ch;
 						buffer_pointer++;
+						
+						// Commando too long, reset.
+						if(buffer_pointer >= 32)
+						{
+							uart_clear_buffer();
+						}
 					}
 				}
 			}
