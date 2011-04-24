@@ -51,56 +51,6 @@ INT8U input_timeout = 0;
 
 /*****************************   Functions   *******************************/
 
-INT8U uart_decipher_command( void)
-{
-	INT8U valid_command = 0;
-	
-	if(	(input_buffer[0] == 's') && (input_buffer[1] == 'e') && (input_buffer[2] == 't') && 
-		(input_buffer[4] == '9' || input_buffer[4] == '8') &&
-		(input_buffer[5] == '2' || input_buffer[5] == '5') &&
-		(input_buffer[7] >= '0' && input_buffer[7] <= '9') &&
-		(input_buffer[8] >= '0' && input_buffer[8] <= '9') &&
-		(input_buffer[9] >= '0' && input_buffer[9] <= '9') &&
-		(input_buffer[10] >= '0' && input_buffer[10] <= '9'))
-	{
-		lcd_add_string_to_buffer(0, 0, "Set ");
-		lcd_add_char_to_buffer(4, 0, input_buffer[4]);
-		lcd_add_char_to_buffer(5, 0, input_buffer[5]);
-		
-		// Find new price
-		INT16U new_price = ((input_buffer[7] - 0x30)*1000) + ((input_buffer[8] - 0x30)*100) + ((input_buffer[9] - 0x30)*10) + (input_buffer[10] - 0x30);
-		
-		// Find which product to set the price for
-		INT8U product;
-		if(input_buffer[4] == '9' && input_buffer[5] == '2')
-		{
-			product = OCTANE_92;
-		}
-		
-		if(input_buffer[4] == '9' && input_buffer[5] == '5')
-		{
-			product = OCTANE_95;
-		}
-		
-		if(input_buffer[4] == '8' && input_buffer[5] == '5')
-		{
-			product = OCTANE_85;
-		}
-		
-		// Set price of product to new_price
-		// Send this command to the event queue.
-		
-		return 1;
-	}
-	
-	if((input_buffer[0] == 'g') && (input_buffer[1] == 'e') && (input_buffer[2] == 't'))
-	{
-		// Send a report command to the event queue.
-	}
-	
-	return valid_command;
-}
-
 void uart_clear_buffer( void )
 /*****************************************************************************
 *   Function : Clears the buffer and various other things.
@@ -114,6 +64,57 @@ void uart_clear_buffer( void )
 	{
 		input_buffer[col] = ' ';
 	}
+}
+
+INT8U uart_decipher_command( void)
+{
+	INT8U valid_command = 0;
+	uart_command command;
+	
+	if(	(input_buffer[0] == 's') && (input_buffer[1] == 'e') && (input_buffer[2] == 't') && 
+		(input_buffer[4] == '9' || input_buffer[4] == '8') &&
+		(input_buffer[5] == '2' || input_buffer[5] == '5') &&
+		(input_buffer[7] >= '0' && input_buffer[7] <= '9') &&
+		(input_buffer[8] >= '0' && input_buffer[8] <= '9') &&
+		(input_buffer[9] >= '0' && input_buffer[9] <= '9') &&
+		(input_buffer[10] >= '0' && input_buffer[10] <= '9'))
+	{
+			
+		// Find new price
+		command.price = ((input_buffer[7] - 0x30)*1000) + ((input_buffer[8] - 0x30)*100) + ((input_buffer[9] - 0x30)*10) + (input_buffer[10] - 0x30);
+		
+		// Find which product to set the price for
+		if(input_buffer[4] == '9' && input_buffer[5] == '2')
+		{
+			command.product = OCTANE_92;
+		}
+		
+		if(input_buffer[4] == '9' && input_buffer[5] == '5')
+		{
+			command.product = OCTANE_95;
+		}
+		
+		if(input_buffer[4] == '8' && input_buffer[5] == '5')
+		{
+			command.product = OCTANE_85;
+		}
+		
+		command.command = UART_SET_PRICE;
+		xQueueSend(uart_command_queue, &command, portMAX_DELAY);
+		
+		valid_command = 1;
+	}
+	
+	if((input_buffer[0] == 'g') && (input_buffer[1] == 'e') && (input_buffer[2] == 't'))
+	{
+		command.command = UART_GET_REPORT;
+		xQueueSend(uart_command_queue, &command, portMAX_DELAY);
+		
+		valid_command = 1;
+	}
+	
+	uart_clear_buffer();
+	return valid_command;
 }
 
 void uart0_receive_task()
