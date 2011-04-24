@@ -37,8 +37,26 @@
 /*****************************   Variables   *******************************/
 
 lineitem current_item;
+product_price octane_92;
+product_price octane_95;
+product_price E_85;
 
 /*****************************   Functions   *******************************/
+
+void gasstation_controller_init( void )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	octane_92.product = OCTANE_92;
+	octane_92.price = 1000;
+	
+	octane_95.product = OCTANE_95;
+	octane_95.price = 1003;
+	
+	E_85.product = OCTANE_85;
+	E_85.price = 1200;
+}
 
 void deascii_pin( INT16U a[4] )
 /*****************************************************************************

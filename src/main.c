@@ -64,7 +64,7 @@ static void setupHardware(void) {
 	init_fan();
 	init_keyboard();
 	init_uart0();
-	
+
 	enable_global_int();
 }
 
@@ -169,6 +169,8 @@ void uart0_receive_task_runner(void *pvParameters)
  */
 void gasstation_controller_runner(void *pvParameters)
 {
+	gasstation_controller_init();
+	
 	while (1)
 	{
 		gasstation_controller_task();
