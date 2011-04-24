@@ -253,7 +253,8 @@ void keyboard_task( void )
 ******************************************************************************/
 {
 	INT8U key;
-
+	gasstation_event event;
+	
 	// check for if 1,4,7 and * is pressed on num_pad
 	xSemaphoreTake(lcd_keyboard_port_mutex, portMAX_DELAY );
 	key = read_keyboard();
@@ -262,6 +263,9 @@ void keyboard_task( void )
 	{
 		// Add key to some queue.
 		//xQueueSend(input_queue,&key, 0);
+		event.event = EVENT_KEYBOARD_DIGIT;
+		event.value = key;
+		xQueueSend(event_queue, &event, 0);
 	}
 }
 /****************************** End Of Module *******************************/
