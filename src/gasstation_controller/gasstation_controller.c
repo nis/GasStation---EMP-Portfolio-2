@@ -29,6 +29,7 @@
 #include "gasstation_controller.h"
 #include "../lcd/lcd.h"
 #include "../led/led.h"
+#include "rtc/rtc.h"
 
 /*****************************    Defines    *******************************/
 

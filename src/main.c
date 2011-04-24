@@ -20,6 +20,7 @@
 #include "defines.h"
 #include "uart/uart.h"
 #include "keyboard/keyboard.h"
+#include "rtc/rtc.h"
 #include "gasstation_controller/gasstation_controller.h"
 
 #define USERTASK_STACK_SIZE configMINIMAL_STACK_SIZE
@@ -161,6 +162,18 @@ void uart0_receive_task_runner(void *pvParameters)
 	{
 		uart0_receive_task();
 		vTaskDelay(10);
+	}
+}
+
+/**
+ * RTC task
+ */
+void rtc_task_runner(void *pvParameters)
+{
+	while (1)
+	{
+		rtc_task();
+		vTaskDelay(100);
 	}
 }
 
