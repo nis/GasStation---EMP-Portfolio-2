@@ -64,6 +64,71 @@ INT8U int_to_ascii_uart(INT8U number)
 	}
 }
 
+void uart_send_10_digit_int (INT32U i )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	INT8U c1 = int_to_ascii((i / 1000000000) % 10);
+	INT8U c2 = int_to_ascii((i / 100000000) % 10);
+	INT8U c3 = int_to_ascii((i / 10000000) % 10);
+	INT8U c4 = int_to_ascii((i / 1000000) % 10);
+	INT8U c5 = int_to_ascii((i / 100000) % 10);
+	INT8U c6 = int_to_ascii((i / 10000) % 10);
+	INT8U c7 = int_to_ascii((i / 1000) % 10);
+	INT8U c8 = int_to_ascii((i / 100) % 10);
+	INT8U c9 = int_to_ascii((i / 10) % 10);
+	INT8U c10 = int_to_ascii((i / 1) % 10);
+	
+	if(c1 == 0x30)
+	{
+		c1 = 0x20;
+		if(c2 == 0x30)
+		{
+			c2 = 0x20;
+			if(c3 == 0x30)
+			{
+				c3 = 0x20;
+				if(c4 == 0x30)
+				{
+					c4 = 0x20;
+					if(c5 == 0x30)
+					{
+						c5 = 0x20;
+						if(c6 == 0x30)
+						{
+							c6 = 0x20;
+							if(c7 == 0x30)
+							{
+								c7 = 0x20;
+								if(c8 == 0x30)
+								{
+									c8 = 0x20;
+									if(c9 == 0x30)
+									{
+										c9 = 0x20;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	uart_send_char(c1);
+	uart_send_char(c2);
+	uart_send_char(c3);
+	uart_send_char(c4);
+	uart_send_char(c5);
+	uart_send_char(c6);
+	uart_send_char(c7);
+	uart_send_char(c8);
+	uart_send_char(c9);
+	uart_send_char(c10);
+}
+
 void uart_send_4_digit_int (INT16U i )
 /*****************************************************************************
 *   Function : See module specification (.h-file).
@@ -74,12 +139,26 @@ void uart_send_4_digit_int (INT16U i )
 	INT8U c3 = int_to_ascii_uart((i / 10) % 10);
 	INT8U c4 = int_to_ascii_uart((i / 1) % 10);
 	
+	uart_send_char(c1);
+	uart_send_char(c2);
+	uart_send_char(c3);
+	uart_send_char(c4);
+}
+
+void uart_send_4_digit_int_with_comma (INT16U i )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	INT8U c1 = int_to_ascii_uart((i / 1000) % 10);
+	INT8U c2 = int_to_ascii_uart((i / 100) % 10);
+	INT8U c3 = int_to_ascii_uart((i / 10) % 10);
+	INT8U c4 = int_to_ascii_uart((i / 1) % 10);
 	
-	
-		uart_send_char(c1);
-		uart_send_char(c2);
-		uart_send_char(c3);
-	
+	uart_send_char(c1);
+	uart_send_char(c2);
+	uart_send_char(',');
+	uart_send_char(c3);
 	uart_send_char(c4);
 }
 
