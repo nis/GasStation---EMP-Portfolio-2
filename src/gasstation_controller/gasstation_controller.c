@@ -53,24 +53,89 @@ void export_sales_via_uart( void )
 *   Function : Export the sales in sales[] via UART.
 *****************************************************************************/
 {
-	INT32U total_liters_sold_92;
-	INT32U total_liters_sold_95;
-	INT32U total_liters_sold_85;
+	INT32U total_liters_sold_92 = 0;
+	INT32U total_liters_sold_95 = 0;
+	INT32U total_liters_sold_85 = 0;
 	
-	INT32U total_cash_sales;
-	INT32U total_account_sales;
+	INT32U total_money_92 = 0;
+	INT32U total_money_95 = 0;
+	INT32U total_money_85 = 0;
+	
+	INT32U total_cash_sales = 0;
+	INT32U total_account_sales = 0;
+	
+	INT8U i;
+	for(i = 0; i < sales_pointer; ++i)
+	{
+		if(sales[i].pay_method == PAYMENT_CASH)
+		{
+			total_cash_sales += sales[i].money;
+		}
+		
+		if(sales[i].pay_method == PAYMENT_ACCOUNT)
+		{
+			total_account_sales += sales[i].money;
+		}
+		
+		if(sales[i].product == OCTANE_92)
+		{
+			total_money_92 += sales[i].money;
+			total_liters_sold_92 += sales[i].pumped;
+		}
+		
+		if(sales[i].product == OCTANE_95)
+		{
+			total_money_95 += sales[i].money;
+			total_liters_sold_95 += sales[i].pumped;
+		}
+		
+		if(sales[i].product == OCTANE_85)
+		{
+			total_money_85 += sales[i].money;
+			total_liters_sold_85 += sales[i].pumped;
+		}
+	}
 	
 	uart_send_string("Report:");
 	uart_send_newline();
-	
-	uart_send_string("Uptime: ");
 	uart_send_newline();
 	
+	uart_send_string("Uptime:        ");
 	uart_send_10_digit_int ( rtc_get_time() );
+	uart_send_string("s");
 	uart_send_newline();
 	
-	//uart_send_string("Invalid command!");
-	//uart_send_newline();
+	uart_send_string("Cash Sales:    ");
+	uart_send_10_digit_int_with_comma ( total_cash_sales );
+	uart_send_newline();
+	
+	uart_send_string("Account Sales: ");
+	uart_send_10_digit_int_with_comma ( total_account_sales );
+	uart_send_newline();
+	
+	uart_send_string("Gas sales: ");
+	uart_send_newline();
+	
+	uart_send_string(" 92: ");
+	uart_send_10_digit_int_with_comma ( total_liters_sold_92 );
+	uart_send_string("L, ");
+	uart_send_10_digit_int_with_comma ( total_money_92 );
+	uart_send_string("kr");
+	uart_send_newline();
+	
+	uart_send_string(" 95: ");
+	uart_send_10_digit_int_with_comma ( total_liters_sold_95 );
+	uart_send_string("L, ");
+	uart_send_10_digit_int_with_comma ( total_money_95 );
+	uart_send_string("kr");
+	uart_send_newline();
+	
+	uart_send_string("E85: ");
+	uart_send_10_digit_int_with_comma ( total_liters_sold_85 );
+	uart_send_string("L, ");
+	uart_send_10_digit_int_with_comma ( total_money_85 );
+	uart_send_string("kr");
+	uart_send_newline();
 }
 
 void save_sale_and_reset( void )
@@ -79,6 +144,10 @@ void save_sale_and_reset( void )
 *****************************************************************************/
 {
 	current_item.time = rtc_get_time();
+	if(current_item.pay_method == PAYMENT_ACCOUNT)
+	{
+		current_item.money = (current_item.pumped * current_item.price)/100;
+	}
 	sales[sales_pointer] = current_item;
 	sales_pointer++;
 	reset_line_item();
@@ -198,6 +267,7 @@ void gasstation_controller_task()
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_92.price );
 						uart_send_newline();
+						uart_send_newline();
 						break;
 						
 						case OCTANE_95:
@@ -207,6 +277,7 @@ void gasstation_controller_task()
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_95.price );
 						uart_send_newline();
+						uart_send_newline();
 						break;
 						
 						case OCTANE_85:
@@ -215,6 +286,7 @@ void gasstation_controller_task()
 						octane_85.price = command.price;
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_85.price );
+						uart_send_newline();
 						uart_send_newline();
 						break;
 					}
