@@ -48,6 +48,42 @@ product_price octane_85;
 
 /*****************************   Functions   *******************************/
 
+void export_sales_via_uart( void )
+/*****************************************************************************
+*   Function : Export the sales in sales[] via UART.
+*****************************************************************************/
+{
+	INT32U total_liters_sold_92;
+	INT32U total_liters_sold_95;
+	INT32U total_liters_sold_85;
+	
+	INT32U total_cash_sales;
+	INT32U total_account_sales;
+	
+	uart_send_string("Report:");
+	uart_send_newline();
+	
+	uart_send_string("Uptime: ");
+	uart_send_newline();
+	
+	uart_send_10_digit_int ( rtc_get_time() );
+	uart_send_newline();
+	
+	//uart_send_string("Invalid command!");
+	//uart_send_newline();
+}
+
+void save_sale_and_reset( void )
+/*****************************************************************************
+*   Function : See module specification (.h-file).
+*****************************************************************************/
+{
+	current_item.time = rtc_get_time();
+	sales[sales_pointer] = current_item;
+	sales_pointer++;
+	reset_line_item();
+}
+
 void update_tanking_display( void )
 /*****************************************************************************
 *   Function : See module specification (.h-file).
@@ -133,8 +169,7 @@ void gasstation_controller_task()
 	static INT16U pin[4]				= { 0x20, 0x20, 0x20, 0x20 };
 	static INT8U pin_pointer			= 0;
 	static INT16U pump_target			= 0;
-	//static INT16U pump_pumped			= 0;
-	static INT16U pump_timer				= 0;
+	static INT16U pump_timer			= 0;
 	
 	switch ( gasstation_state )
 	{
@@ -186,7 +221,7 @@ void gasstation_controller_task()
 					break;
 					
 					case UART_GET_REPORT:
-					led_yellow_toggle();
+					export_sales_via_uart();
 					break;
 				}
 			}
@@ -376,7 +411,7 @@ void gasstation_controller_task()
 					case EVENT_HANDLE_LIFTET:
 					if(current_item.pay_method == PAYMENT_CASH)
 					{
-						pump_target = (current_item.money/current_item.price) * 100;
+						pump_target = (current_item.money * 100)/current_item.price;
 						current_item.pumped = 0;
 						fan_get_pulse_count();
 					}
@@ -391,10 +426,11 @@ void gasstation_controller_task()
 		
 		case STATE_PUMP_SLOW:
 		fan_set_speed(40);
-		current_item.pumped += fan_get_pulse_count();
+		INT16U old_pulse_count = fan_get_pulse_count();
+		current_item.pumped += old_pulse_count;
 		update_tanking_display();
 		
-		if(current_item.pay_method == PAYMENT_CASH && (pump_target - current_item.pumped) < 1000)
+		if(current_item.pay_method == PAYMENT_CASH && ((pump_target - current_item.pumped) < 1000) && old_pulse_count > 0)
 		{
 			gasstation_state = STATE_PUMP_RAMP_DOWN;
 		}
@@ -526,20 +562,43 @@ void gasstation_controller_task()
 		update_tanking_display();
 		if(current_item.pumped == old_pumped)
 		{
-			current_item.time = rtc_get_time();
-			sales[sales_pointer] = current_item;
-			sales_pointer++;
-			
 			pump_timer = 0;
 			gasstation_state = STATE_RECEIPT;
 		}
 		break;
 		
 		case STATE_RECEIPT:
-		if(pump_timer >= 500)
+		current_item.pumped += fan_get_pulse_count();
+		update_tanking_display();
+		if(uxQueueMessagesWaiting(event_queue) != 0)
 		{
+			status = xQueueReceive(event_queue, &event, 0);
+			
+			if(status == pdPASS)
+			{
+				switch ( event.event )
+				{
+					case EVENT_ACCOUNT_CLICK:
+					save_sale_and_reset();
+					pump_timer = 0;
+					gasstation_state = STATE_IDLE;
+					break;
+					
+					case EVENT_HANDLE_LIFTET:
+					current_item.pumped += fan_get_pulse_count();
+					if((current_item.pay_method == PAYMENT_CASH && current_item.pumped <= pump_target) || current_item.pay_method == PAYMENT_ACCOUNT)
+					{
+						gasstation_state = STATE_PUMP_SLOW;
+					}
+					break;
+				}
+			}
+		}
+		
+		if(pump_timer >= 1500)
+		{
+			save_sale_and_reset();
 			pump_timer = 0;
-			reset_line_item();
 			gasstation_state = STATE_IDLE;
 		} else {
 			pump_timer++;
