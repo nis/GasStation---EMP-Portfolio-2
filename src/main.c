@@ -44,13 +44,6 @@ xTaskHandle UART0_SEND_TASK;
 xTaskHandle UART0_RECEIVE_TASK;
 xTaskHandle GASSTATION_CONTROLLER;
 
-// Pump Variables
-// INT8U pump_state = 0;
-// INT8U pump_timer = 0;
-// INT16U pump_pumped = 0;
-// INT8U pump_hit_target = 1;
-// INT16U pump_target = 3000;
-
 void __error__(char *pcFilename, unsigned long ulLine) {
 }
 
@@ -178,7 +171,7 @@ void rtc_task_runner(void *pvParameters)
 }
 
 /**
- * Working task.
+ * Grand Controller task.
  */
 void gasstation_controller_runner(void *pvParameters)
 {
@@ -187,140 +180,6 @@ void gasstation_controller_runner(void *pvParameters)
 	while (1)
 	{
 		gasstation_controller_task();
-		// INT16U diff;
-		// 
-		// if(pump_hit_target)
-		// {
-		// 	diff = pump_target - pump_pumped;
-		// }
-		// 
-		// // Pump State Machine
-		// switch (pump_state)
-		// {
-		// 	case PUMP_IDLE:
-		// 	lcd_add_string_to_buffer(0, 0, "Start tanking");
-		// 	if(button_select_pushed())
-		// 	{
-		// 		pump_pumped = 0;
-		// 		fan_set_speed(40);
-		// 		pump_state = PUMP_SLOW;
-		// 	}	
-		// 	break;
-		// 	
-		// 	case PUMP_SLOW:
-		// 	lcd_add_string_to_buffer(0, 0, "Slow         ");
-		// 	if(button_select_pushed())
-		// 	{	
-		// 		if(pump_hit_target && diff < 1000)
-		// 		{
-		// 			pump_state = PUMP_RAMP_DOWN;
-		// 		}
-		// 		if(pump_timer >= 200)
-		// 		{
-		// 			pump_timer = 0;
-		// 			pump_state = PUMP_RAMP_UP;
-		// 		} else {
-		// 			pump_timer++;
-		// 		}
-		// 	} else {
-		// 		fan_set_speed(0);
-		// 		pump_state = PUMP_IDLE;
-		// 	}
-		// 	break;
-		// 	
-		// 	case PUMP_RAMP_UP:
-		// 	lcd_add_string_to_buffer(0, 0, "Ramp up      ");
-		// 	if(button_select_pushed())
-		// 	{
-		// 		if(pump_hit_target && diff < 1000)
-		// 		{
-		// 			pump_state = PUMP_RAMP_DOWN;
-		// 		}
-		// 		if(pump_timer >= 10)
-		// 		{
-		// 			pump_timer = 0;
-		// 			if(fan_get_ref_speed() < 100)
-		// 			{
-		// 				fan_speed_up( 1 );
-		// 			} else {
-		// 				pump_state = PUMP_SS;
-		// 			}
-		// 		} else {
-		// 			pump_timer++;
-		// 		}
-		// 	} else {
-		// 		fan_set_speed(0);
-		// 		pump_state = PUMP_IDLE;
-		// 	}
-		// 	break;
-		// 	
-		// 	case PUMP_SS:
-		// 	lcd_add_string_to_buffer(0, 0, "SS           ");
-		// 	if(button_select_pushed())
-		// 	{
-		// 		if(pump_hit_target && diff < 1000)
-		// 		{
-		// 			pump_state = PUMP_RAMP_DOWN;
-		// 		}
-		// 	} else {
-		// 		fan_set_speed(0);
-		// 		pump_state = PUMP_IDLE;
-		// 	}
-		// 	break;
-		// 	
-		// 	case PUMP_RAMP_DOWN:
-		// 	if(button_select_pushed())
-		// 	{
-		// 		if(pump_pumped > pump_target)
-		// 		{
-		// 			fan_set_speed(0);
-		// 			pump_state = PUMP_TARGET_REACHED;
-		// 		} else if(diff < 12)
-		// 		{
-		// 			fan_set_speed(0);
-		// 			pump_state = PUMP_TARGET_REACHED;
-		// 		} else if(diff < 30)
-		// 		{
-		// 			fan_set_speed(3);
-		// 		} else if(diff < 100)
-		// 		{
-		// 			fan_set_speed(5);
-		// 		} else if(diff < 250)
-		// 		{
-		// 			fan_set_speed(10);
-		// 		} else if(diff < 500)
-		// 		{
-		// 			fan_set_speed(30);
-		// 		} else if(diff < 1000)
-		// 		{
-		// 			fan_set_speed(50);
-		// 		}
-		// 	} else {
-		// 		fan_set_speed(0);
-		// 		pump_state = PUMP_IDLE;
-		// 	}
-		// 	break;
-		// 	
-		// 	case PUMP_TARGET_REACHED:
-		// 	lcd_add_string_to_buffer(0, 0, "Target Reached");
-		// 	if(pump_timer >= 200)
-		// 	{
-		// 		pump_timer = 0;
-		// 		pump_state = PUMP_IDLE;
-		// 	} else {
-		// 		pump_timer++;
-		// 	}
-		// 	break;
-		// }
-		// 
-		// // Write refspeed
-		// write_3_char_int_to_buffer (13, 0, fan_get_ref_speed() );
-		// 
-		// // How much have we pumped so far?
-		// pump_pumped += fan_get_pulse_count();
-		// write_5_char_int_to_buffer (11, 1, pump_pumped );
-		
-		
 		vTaskDelay(10);
 	}
 }
