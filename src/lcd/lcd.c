@@ -282,14 +282,6 @@ void write_10_char_int_to_buffer_with_comma (INT8U start, INT8U line, INT32U i )
 							if(c7 == 0x30)
 							{
 								c7 = 0x20;
-								if(c8 == 0x30)
-								{
-									c8 = 0x20;
-									if(c9 == 0x30)
-									{
-										c9 = 0x20;
-									}
-								}
 							}
 						}
 					}
