@@ -263,9 +263,11 @@ void gasstation_controller_task()
 						case OCTANE_92:
 						uart_send_string("Changed price for 92 from ");
 						uart_send_4_digit_int_with_comma( octane_92.price );
+						uart_send_string("kr ");
 						octane_92.price = command.price;
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_92.price );
+						uart_send_string("kr ");
 						uart_send_newline();
 						uart_send_newline();
 						break;
@@ -273,9 +275,11 @@ void gasstation_controller_task()
 						case OCTANE_95:
 						uart_send_string("Changed price for 95 from ");
 						uart_send_4_digit_int_with_comma( octane_95.price );
+						uart_send_string("kr ");
 						octane_95.price = command.price;
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_95.price );
+						uart_send_string("kr ");
 						uart_send_newline();
 						uart_send_newline();
 						break;
@@ -283,9 +287,11 @@ void gasstation_controller_task()
 						case OCTANE_85:
 						uart_send_string("Changed price for E85 from ");
 						uart_send_4_digit_int_with_comma( octane_85.price );
+						uart_send_string("kr ");
 						octane_85.price = command.price;
 						uart_send_string(" to ");
 						uart_send_4_digit_int_with_comma( octane_85.price );
+						uart_send_string("kr ");
 						uart_send_newline();
 						uart_send_newline();
 						break;
