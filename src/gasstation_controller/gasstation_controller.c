@@ -100,17 +100,19 @@ void export_sales_via_uart( void )
 	uart_send_newline();
 	uart_send_newline();
 	
-	uart_send_string("Uptime:        ");
+	uart_send_string("Uptime:         ");
 	uart_send_10_digit_int ( rtc_get_time() );
 	uart_send_string("s");
 	uart_send_newline();
 	
 	uart_send_string("Cash Sales:    ");
 	uart_send_10_digit_int_with_comma ( total_cash_sales );
+	uart_send_string("kr ");
 	uart_send_newline();
 	
 	uart_send_string("Account Sales: ");
 	uart_send_10_digit_int_with_comma ( total_account_sales );
+	uart_send_string("kr ");
 	uart_send_newline();
 	
 	uart_send_string("Gas sales: ");
@@ -135,6 +137,7 @@ void export_sales_via_uart( void )
 	uart_send_string("L, ");
 	uart_send_10_digit_int_with_comma ( total_money_85 );
 	uart_send_string("kr");
+	uart_send_newline();
 	uart_send_newline();
 }
 
