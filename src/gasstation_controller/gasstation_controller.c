@@ -268,7 +268,7 @@ void gasstation_controller_task()
 						uart_send_4_digit_int_with_comma( octane_92.price );
 						uart_send_string("kr ");
 						octane_92.price = command.price;
-						uart_send_string(" to ");
+						uart_send_string("to ");
 						uart_send_4_digit_int_with_comma( octane_92.price );
 						uart_send_string("kr ");
 						uart_send_newline();
@@ -280,7 +280,7 @@ void gasstation_controller_task()
 						uart_send_4_digit_int_with_comma( octane_95.price );
 						uart_send_string("kr ");
 						octane_95.price = command.price;
-						uart_send_string(" to ");
+						uart_send_string("to ");
 						uart_send_4_digit_int_with_comma( octane_95.price );
 						uart_send_string("kr ");
 						uart_send_newline();
@@ -292,7 +292,7 @@ void gasstation_controller_task()
 						uart_send_4_digit_int_with_comma( octane_85.price );
 						uart_send_string("kr ");
 						octane_85.price = command.price;
-						uart_send_string(" to ");
+						uart_send_string("to ");
 						uart_send_4_digit_int_with_comma( octane_85.price );
 						uart_send_string("kr ");
 						uart_send_newline();

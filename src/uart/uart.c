@@ -296,6 +296,7 @@ INT8U uart_decipher_command( void)
 		uart_send_newline();
 		uart_send_string(" get");
 		uart_send_newline();
+		uart_send_newline();
 	}
 	
 	return valid_command;
