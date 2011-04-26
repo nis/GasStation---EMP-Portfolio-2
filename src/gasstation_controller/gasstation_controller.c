@@ -605,6 +605,21 @@ void gasstation_controller_task()
 		current_item.pumped += fan_get_pulse_count();
 		update_tanking_display();
 		
+		if(uxQueueMessagesWaiting(event_queue) != 0)
+		{
+			status = xQueueReceive(event_queue, &event, 0);
+			
+			if(status == pdPASS)
+			{
+				switch ( event.event )
+				{
+					case EVENT_HANDLE_REPLACED:
+					gasstation_state = STATE_SHUTDOWN_PUMP;
+					break;
+				}
+			}
+		}
+		
 		INT16U diff = pump_target - current_item.pumped;
 		
 		if(current_item.pumped > pump_target)
